@@ -19,7 +19,7 @@ app.use(cookieParser());
 dbConnect();
 
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on ${process.env.PORT}`);
+    console.log(`Server is running on PORT: ${process.env.PORT}`);
 })
 
 // app.get("/", (req,res) => {
