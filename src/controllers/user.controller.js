@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt")
 const uploadToCloudinary = require("../utils/cloudinary")
+const fs = require("fs")
 
 
 const registerUser = async (req,res) => {
@@ -26,15 +27,20 @@ const registerUser = async (req,res) => {
 
         const existingUser = await User.findOne({username});
 
+        const avatarLocalPath = req.files.avatar[0].path;
+        const coverImageLocalPath = req.files.coverImage ? req.files.coverImage[0].path : "";
+
         if(existingUser){
+            fs.unlinkSync(avatarLocalPath); // <MY CONTRIBUTION>
+            coverImageLocalPath ? fs.unlinkSync(coverImageLocalPath) : ""; // <MY CONTRIBUTION>
             return res.status(400).json({
                 success: false,
                 message: "user already exist, please log in !"
             })
         }
 
-        const avatarLocalPath = req.files.avatar[0].path;
-        const coverLocalPath = req.files.coverImage[0].path;
+        // const avatarLocalPath = req.files.avatar[0].path;
+        // const coverImageLocalPath = req.files.coverImage ? req.files.coverImage[0].path : "";
 
         if(!avatarLocalPath){
             return res.status(400).json({
@@ -44,7 +50,7 @@ const registerUser = async (req,res) => {
         }
 
         const avatar = await uploadToCloudinary(avatarLocalPath);
-        const coverImage = await uploadToCloudinary(coverLocalPath);
+        const coverImage = await uploadToCloudinary(coverImageLocalPath);
 
         if(!avatar){
             return res.status(400).json({
@@ -61,7 +67,7 @@ const registerUser = async (req,res) => {
             fullName,
             password: hashedPassword,
             avatar: avatar.url,
-            coverImage: coverImage.url || ""
+            coverImage: coverImage?.url || ""
         })
 
         return res.status(200).json({

@@ -20,10 +20,12 @@ const uploadToCloudinary = async (localFilePath) => {
         }
     
         const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: 'auto'
+            resource_type: 'auto',
+            folder: "youtubeBackend"
         })
         
-        console.log("file uploaded to cloudinary successfully - ", response.url);
+        // console.log("file uploaded to cloudinary successfully - ", response.url);
+        fs.unlinkSync(localFilePath);
         return response;
 
     } catch (error) {
