@@ -2,9 +2,11 @@ const User = require("../models/user.model");
 const bcrypt = require("bcrypt")
 const uploadToCloudinary = require("../utils/cloudinary")
 const fs = require("fs")
+const jwt = require("jsonwebtoken");
+// const { options } = require("../routes/user.routes");
 
 
-const registerUser = async (req,res) => {
+exports.registerUser = async (req,res) => {
     try {
 
         // get all the required fields from req.body
@@ -86,4 +88,86 @@ const registerUser = async (req,res) => {
     }
 }
 
-module.exports = registerUser
+
+exports.loginUser = async (req,res) =>{
+    try {
+
+        // extract all data from -> req.body
+        // check if not empty
+        // check user is exist or not
+        // check for correct password
+        // create jwt token 
+        // add/insert that token in user DB and save it 
+        // send that token in cookies
+        // return res
+
+        const {username,email,password} = req.body;
+
+        if(!username || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required !"
+            })
+        }
+
+        const user = await User.findOne({email});
+
+        if(!user){
+            return res.status(400).json({
+                success: false,
+                message: "user is not registered !, 1st sign up"
+            })
+        }
+
+        const payload = {
+            email: user.email,
+            username: user.username,
+            id: user._id
+        }
+
+        if( await bcrypt.compare(password,user.password) ){
+
+            const token = jwt.sign(payload,process.env.JWT_SECRET,
+                {
+                    expiresIn: "2h"
+                });
+
+            user.refreshToken = token;
+            await user.save();
+            // const existingUser = await User.find({email});
+
+            const options = {
+                httpOnly: true,
+                expires: new Date(Date.now()+ 30*1000)
+            }
+
+            res.status(200).cookie("token",token,options).json({
+                success: true,
+                token,
+                user,
+                // existingUser,
+                message: "User logged in successfully !"
+            })
+            
+
+        } else {
+
+            return res.status(400).json({
+                success: false,
+                message: "password is incorrect !"
+            })
+
+        }
+
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({
+            success: false,
+            message: "user can't be logged in, something went wrong !"
+        })
+    }
+}
+
+
+// module.exports = registerUser
