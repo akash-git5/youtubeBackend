@@ -122,7 +122,7 @@ exports.loginUser = async (req,res) =>{
         const payload = {
             email: user.email,
             username: user.username,
-            id: user._id
+            _id: user._id
         }
 
         if( await bcrypt.compare(password,user.password) ){
@@ -132,13 +132,13 @@ exports.loginUser = async (req,res) =>{
                     expiresIn: "2h"
                 });
 
-            user.refreshToken = token;
+            user.token = token;
             await user.save();
             // const existingUser = await User.find({email});
 
             const options = {
                 httpOnly: true,
-                expires: new Date(Date.now()+ 30*1000)
+                expires: new Date(Date.now()+ 3*24*60*60*1000)
             }
 
             res.status(200).cookie("token",token,options).json({
@@ -165,6 +165,44 @@ exports.loginUser = async (req,res) =>{
         return res.status(400).json({
             success: false,
             message: "user can't be logged in, something went wrong !"
+        })
+    }
+}
+
+exports.logoutUser = async (req,res) =>{
+    try {
+        
+        // find the user and update the token:
+        // console.log("hi = ", req.user._id);
+        const user = await User.findByIdAndUpdate(req.user._id,
+            {
+                $set:{
+                    token: undefined
+                }
+            },
+            {
+                new: true
+            }
+            );
+        console.log("user => ", user);
+
+        const options = {
+            httpOnly: true,
+            expires: new Date(Date.now()+ 3*24*60*60*1000)
+        }
+
+        return res.status(200).clearCookie("token",options).json({
+            success: true,
+            message: "user logged out",
+            user
+        })
+        
+            
+
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "user can't be logged out !"
         })
     }
 }
