@@ -207,5 +207,49 @@ exports.logoutUser = async (req,res) =>{
     }
 }
 
+exports.changeUserPassword = async (req,res) => {
+    try {
+        
+        const {oldPassword,newPassword} = req.body;
+
+        if(!oldPassword || !newPassword){
+            return res.status(400).json({
+                success: false,
+                message: "all fields are required !"
+            })
+        }
+
+        const user = await User.findById(req.user._id);
+
+        if( await bcrypt.compare(oldPassword,user.password) ){
+            
+            const hashedPassword = await bcrypt.hash(newPassword,10);
+
+            user.password = hashedPassword
+            await user.save();
+
+            return res.status(200).json({
+                success: false,
+                message: "password changes successfully !"
+            })
+
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "oldPassword doesn't match !"
+            })
+        }
+
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: 'Password changes failed !'
+        })
+    }
+}
+
+
+
+
 
 // module.exports = registerUser
