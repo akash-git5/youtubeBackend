@@ -20,12 +20,12 @@ router.get("/login",loginUser);
 router.get("/logout",auth, logoutUser);
 router.post("/changePassword",auth, changeUserPassword);
 // router.get("/getCurrentUser", auth, getCurrentUser);
-router.post("/updateAvatar",upload.fields([
+router.patch("/updateAvatar",auth, upload.fields([
     {
         name: "avatar",
         maxCount: 1
     }
-]), auth, updateUserAvatar)
+]), updateUserAvatar)
 
 
 
