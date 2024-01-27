@@ -229,7 +229,7 @@ exports.changeUserPassword = async (req,res) => {
             await user.save();
 
             return res.status(200).json({
-                success: false,
+                success: true,
                 message: "password changes successfully !"
             })
 
@@ -247,6 +247,79 @@ exports.changeUserPassword = async (req,res) => {
         })
     }
 }
+
+exports.updateUserAvatar = async (req,res) => {
+    try {
+        
+        const avatarLocalPath = req.files.avatar[0].path;
+        if(!avatarLocalPath){
+            return res.status(400).json({
+                success: false,
+                message: "avatar not found !"
+            })
+        }
+
+        const avatarClodinary = await uploadToCloudinary(avatarLocalPath);
+        if(!avatarClodinary){
+            return res.status(500).json({
+                success: false,
+                message: "something went wrong, avatar cloudinary path not found !"
+            })
+        }
+
+
+        const user = await User.findByIdAndUpdate(req.user._id,
+            {
+                $set:{
+                    avatar: avatarClodinary.url
+                }
+            },
+            {
+                new: true
+            })
+
+        return res.status(200).json({
+            success: true,
+            message: "avatar updated successfully !",
+            user
+        })
+
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "avatar updation failed !"
+        })
+    }
+}
+
+
+
+
+// exports.getCurrentUser = async (req,res) => {
+//     try {
+
+//         const user = await User.findById(req.user._id);
+
+//         if(!user){
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "user doesn't found !"
+//             })
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             user,
+//             message: "current user fetched successfully !"
+//         })
+        
+//     } catch (error) {
+//         return res.status(200).json({
+//             success: false,
+//             message: 'current user fetch failed !'
+//         })
+//     }
+// }
 
 
 
