@@ -176,8 +176,11 @@ exports.logoutUser = async (req,res) =>{
         // console.log("hi = ", req.user._id);
         const user = await User.findByIdAndUpdate(req.user._id,
             {
-                $set:{
-                    token: undefined
+                // $set:{
+                //     token: undefined
+                // }
+                $unset:{
+                    token: 1
                 }
             },
             {
